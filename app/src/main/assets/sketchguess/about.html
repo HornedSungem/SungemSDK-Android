@@ -1,0 +1,54 @@
+<html>
+<head>
+    <meta name="viewport" content="user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <style type="text/css">
+        html {
+            -webkit-text-size-adjust: none; /* Never autoresize text */
+            word-wrap:break-word; /* break the word in an another line if it's too long */
+        }
+
+
+
+
+
+
+
+
+
+    </style>
+</head>
+<body>
+
+<div style="font-family:Helvetica; font-size:14px; line-height:18px; margin: 20px auto;">
+    <div style="padding-left:15px; padding-right:15px;">
+
+        <p>此例子介绍如何使用角蜂鸟实现手绘识别的功能，使用图片分类神经网络(caffe)，识别手绘的图像，返回345种物体的置信度，找到图片可能最像的物体</p>
+
+        <p style="margin-bottom:3px;"><strong>业务逻辑</strong></p>
+
+        <ul style="padding-left:16px;margin-top:0px;">
+            <li>输入模型文件</li>
+            <li>获取角蜂鸟摄像头图像信息</li>
+            <li>处理图像并写入角蜂鸟里</li>
+            <li>获取识别结果信息</li>
+            <li>返回345种物体相对应的置信度</li>
+        </ul>
+
+        <p style="margin-bottom:3px;"><strong>操作步骤</strong></p>
+        <ul style="padding-left:16px;margin-top:0px;">
+            <li>usb连接角蜂鸟</li>
+            <li>等待几秒，开启usb设备权限</li>
+            <li>将手绘图放置中间的检测区域</li>
+            <li>右侧返回相似度最高的五种物体</li>
+        </ul>
+
+        <p><a href="https://hornedsungem.github.io/Docs/">使用教程</a></p>
+
+        <p>Copyright(c) 2018 HornedSungem Corporation.</p>
+
+    </div>
+</div>
+
+</body>
+</html>	

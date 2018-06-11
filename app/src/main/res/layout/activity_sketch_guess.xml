@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.senscape.hsdemo.sketchGuess.SketchGuessActivity">
+
+    <FrameLayout
+        android:layout_width="1280px"
+        android:layout_height="720px"
+        >
+
+        <ImageView
+            android:id="@+id/img_frame_sg"
+            android:layout_width="1280px"
+            android:layout_height="720px"
+            android:scaleType="fitXY"/>
+
+        <ImageView
+            android:id="@+id/img_border_sg"
+            android:layout_width="256px"
+            android:layout_height="256px"
+            android:layout_gravity="center"
+            android:background="@drawable/select_shape"
+            android:visibility="gone"/>
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/img_tensor_sg"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:scaleType="fitXY"/>
+
+    <TextView
+        android:id="@+id/tv_garget"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/layout_result"
+        android:layout_alignLeft="@+id/layout_result"
+        android:layout_marginBottom="20dp"
+        android:text="命题:"
+        android:textSize="18sp"
+        android:textStyle="bold"/>
+
+    <LinearLayout
+        android:id="@+id/layout_result"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="识别结果："/>
+
+        <TextView
+            android:id="@+id/tv_result1_sg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_result2_sg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_result3_sg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_result4_sg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_result5_sg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            />
+    </LinearLayout>
+</RelativeLayout>
