@@ -12,7 +12,7 @@ import android.widget.Toast;
 import com.hornedSungem.library.ConnectBridge;
 import com.hornedSungem.library.HsBaseActivity;
 import com.hornedSungem.library.model.HornedSungemFrame;
-import com.hornedSungem.library.thread.HsThread;
+import com.hornedSungem.library.thread.HsBaseThread;
 import com.senscape.hsdemo.DrawView;
 import com.senscape.hsdemo.R;
 
@@ -28,7 +28,7 @@ public class FaceDetectorActivity extends HsBaseActivity {
     private DrawView mDrawView;
     private ImageView mImageView;
 
-    private HsThread mHsThread;
+    private HsBaseThread mHsThread;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -65,7 +65,7 @@ public class FaceDetectorActivity extends HsBaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (mHsThread != null) {
-            mHsThread.setRunning(false);
+            mHsThread.close();
         }
     }
 
@@ -85,7 +85,6 @@ public class FaceDetectorActivity extends HsBaseActivity {
     public void disConnected() {
         Toast.makeText(this, "断开连接", Toast.LENGTH_SHORT).show();
         if (mHsThread != null) {
-            mHsThread.setRunning(false);
             mHsThread.close();
         }
     }

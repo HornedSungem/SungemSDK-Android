@@ -36,7 +36,8 @@ public class DrawView extends View {
         paint.setColor(Color.GREEN);
         paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(3);
+        paint.setStrokeWidth(2);
+        paint.setTextSize(25);
         mObjectInfos = new ArrayList<>();
     }
 
@@ -48,7 +49,7 @@ public class DrawView extends View {
                 if (objectInfo == null) break;
                 canvas.drawRect(objectInfo.getRect(), paint);
                 // 因为旋转了画布矩阵，所以字体也跟着旋转
-                canvas.drawText(String.valueOf("type:" + objectInfo.getType() + "\n置信度:" + objectInfo.getScore()), objectInfo.getRect().left, objectInfo.getRect().bottom + 10, paint);
+                canvas.drawText(String.valueOf("  " + objectInfo.getType() + "\n置信度:" + objectInfo.getScore()), objectInfo.getRect().left, objectInfo.getRect().bottom - 20, paint);
             }
         }
     }

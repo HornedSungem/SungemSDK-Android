@@ -136,7 +136,6 @@ public class SketchGuessActivity extends HsBaseActivity {
     @Override
     public void disConnected() {
         if (mSketchGuessThread != null) {
-            mSketchGuessThread.setRunning(false);
             mSketchGuessThread.close();
         }
 

@@ -7,6 +7,11 @@
     <uses-permission android:name="android.hardware.usb.host"/>
     <uses-permission android:name="android.hardware.usb.accessory"/>
 
+    <uses-feature android:name="android.hardware.Camera"/>
+
+    <uses-permission android:name="android.permission.CAMERA"/>
+
+    <uses-sdk android:minSdkVersion="12"/>
     <uses-feature android:name="android.hardware.usb.host"/>
 
     <application
@@ -16,22 +21,30 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenSize|layoutDirection"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".AboutActivity">
+        <activity
+            android:name=".AboutActivity"
+            android:configChanges="orientation|screenSize|screenSize|layoutDirection"
+            android:screenOrientation="portrait">
         </activity>
         <activity
             android:name=".faceDetector.FaceDetectorActivity"
             android:configChanges="orientation|screenSize|screenSize|layoutDirection"
-            android:screenOrientation="landscape"
-            >
+            android:screenOrientation="landscape">
         </activity>
-        <activity android:name=".hello2018.HelloActivity">
+        <activity
+            android:name=".hello2018.HelloActivity"
+            android:configChanges="orientation|screenSize|screenSize|layoutDirection"
+            android:screenOrientation="portrait">
         </activity>
         <activity
             android:name=".sketchGuess.SketchGuessActivity"
@@ -40,6 +53,21 @@
         </activity>
         <activity
             android:name=".objectDetector.ObjectDetectorActivity"
+            android:configChanges="orientation|screenSize|screenSize|layoutDirection"
+            android:screenOrientation="landscape">
+        </activity>
+        <activity
+            android:name=".faceDetector.FaceDetectorBySelfActivity"
+            android:configChanges="orientation|screenSize|screenSize|layoutDirection"
+            android:screenOrientation="landscape">
+        </activity>
+        <activity
+            android:name=".objectDetector.ObjectDetectorBySelfActivity"
+            android:configChanges="orientation|screenSize|screenSize|layoutDirection"
+            android:screenOrientation="landscape">
+        </activity>
+        <activity
+            android:name=".sketchGuess.SGbySelfctivity"
             android:configChanges="orientation|screenSize|screenSize|layoutDirection"
             android:screenOrientation="landscape">
         </activity>

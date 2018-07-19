@@ -11,7 +11,7 @@ import android.widget.Toast;
 import com.hornedSungem.library.ConnectBridge;
 import com.hornedSungem.library.HsBaseActivity;
 import com.hornedSungem.library.model.HornedSungemFrame;
-import com.hornedSungem.library.thread.HsThread;
+import com.hornedSungem.library.thread.HsBaseThread;
 import com.senscape.hsdemo.DrawView;
 import com.senscape.hsdemo.R;
 
@@ -23,7 +23,7 @@ import java.util.ArrayList;
  */
 public class ObjectDetectorActivity extends HsBaseActivity {
 
-    private HsThread mHsThread;
+    private HsBaseThread mHsThread;
     private TextView mTvTip;
     private DrawView mDrawView;
     private ImageView mImageView;
@@ -62,7 +62,6 @@ public class ObjectDetectorActivity extends HsBaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (mHsThread != null) {
-            mHsThread.setRunning(false);
             mHsThread.close();
         }
     }
@@ -84,7 +83,6 @@ public class ObjectDetectorActivity extends HsBaseActivity {
     public void disConnected() {
         Toast.makeText(this, "断开连接", Toast.LENGTH_SHORT).show();
         if (mHsThread != null) {
-            mHsThread.setRunning(false);
             mHsThread.close();
         }
     }

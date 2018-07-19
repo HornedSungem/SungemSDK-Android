@@ -10,4 +10,11 @@
               android:layout_width="match_parent"
               android:layout_height="0dip"
               android:layout_weight="1"/>
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:padding="5dp"
+        android:text="使用角蜂鸟摄像头"
+        android:id="@+id/cb_type"
+        android:layout_margin="20dp"
+        android:layout_height="wrap_content"/>
 </LinearLayout>
