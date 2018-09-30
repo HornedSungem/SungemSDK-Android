@@ -3,10 +3,10 @@ package com.senscape.hsdemo.sketchGuess;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.hardware.usb.UsbDevice;
 import android.os.Handler;
 import android.os.Message;
 
-import com.hornedSungem.library.ConnectBridge;
 import com.hornedSungem.library.ConnectStatus;
 import com.hornedSungem.library.thread.HsBaseThread;
 
@@ -37,33 +37,33 @@ import static org.bytedeco.javacpp.opencv_imgproc.cvResize;
 
 public class SketchGuessThread extends HsBaseThread {
     private double roi_ratio = 0.2;
-    private String[] mObjectNames = new String[345];
+    private String[] mObjectNames;
 
     private Handler mHandler;
     private Activity mActivity;
     private int FRAME_W = 640;
     private int FRAME_H = 360;
-    public SketchGuessThread(Activity activity, ConnectBridge connectBridge, Handler handler, String[] names) {
-        super( connectBridge,true);
-        mActivity=activity;
-        mHandler=handler;
+
+    public SketchGuessThread(Activity activity, UsbDevice usbDevice, Handler handler, String[] names) {
+        super(activity, usbDevice, true);
+        mActivity = activity;
+        mHandler = handler;
         mObjectNames = names;
     }
 
     @Override
     public void run() {
         super.run();
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        int status = allocateGraphByAssets(mActivity,"graph_sg");
+        int status = openDevice();
         if (status != ConnectStatus.HS_OK) {
             Message message = mHandler.obtainMessage();
             message.arg1 = 1;
             message.obj = status;
             mHandler.sendMessage(message);
+            return;
+        }
+        int id = allocateGraphByAssets(mActivity, "graph_sg");
+        if (id < 0) {
             return;
         }
         try {
@@ -112,9 +112,9 @@ public class SketchGuessThread extends HsBaseThread {
                         floats[3 * i + 1] = Color.green(pixels[i]) * 0.007843f - 1;
                         floats[3 * i + 2] = Color.blue(pixels[i]) * 0.007843f - 1;
                     }
-                    int status_tensor = loadTensor(floats, floats.length, 0);
+                    int status_tensor = loadTensor(floats, floats.length, id);
                     if (status_tensor == ConnectStatus.HS_OK) {
-                        float[] result = getResult(0);
+                        float[] result = getResult(id);
                         if (result != null) {
                             Message message2 = new Message();
                             message2.arg1 = 3;

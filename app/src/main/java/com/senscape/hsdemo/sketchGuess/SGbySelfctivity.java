@@ -1,10 +1,13 @@
 package com.senscape.hsdemo.sketchGuess;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.hardware.Camera;
+import android.hardware.usb.UsbDevice;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,9 +29,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.hornedSungem.library.ConnectBridge;
 import com.hornedSungem.library.ConnectStatus;
-import com.hornedSungem.library.HsBaseActivity;
 import com.senscape.hsdemo.R;
 
 import org.bytedeco.javacpp.opencv_core;
@@ -54,7 +55,11 @@ import static org.bytedeco.javacpp.opencv_imgproc.cvCvtColor;
 import static org.bytedeco.javacpp.opencv_imgproc.cvDilate;
 import static org.bytedeco.javacpp.opencv_imgproc.cvResize;
 
-public class SGbySelfctivity extends HsBaseActivity implements Camera.PreviewCallback {
+/**
+ * Copyright(c) 2018 HornedSungem Corporation.
+ * License: Apache 2.0
+ */
+public class SGbySelfctivity extends Activity implements Camera.PreviewCallback {
 
     private static final int REQUEST_CAMERA_CODE = 0xABCD;
     private SurfaceView mSurfaceView;
@@ -113,6 +118,11 @@ public class SGbySelfctivity extends HsBaseActivity implements Camera.PreviewCal
         initView();
         initOjbectName();
         initY2R();
+        UsbDevice usbDevice = getIntent().getParcelableExtra("usbdevice");
+        if (usbDevice != null) {
+            mSGInitThread = new SGInitThread(SGbySelfctivity.this, usbDevice, mHandler);
+            mSGInitThread.start();
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -127,6 +137,12 @@ public class SGbySelfctivity extends HsBaseActivity implements Camera.PreviewCal
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mSGInitThread != null) mSGInitThread.closeDevice();
+    }
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_CAMERA_CODE) {
@@ -136,6 +152,7 @@ public class SGbySelfctivity extends HsBaseActivity implements Camera.PreviewCal
         }
     }
 
+    @SuppressLint("NewApi")
     private void initY2R() {
         rs = RenderScript.create(this);
         yuvToRgbIntrinsic = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs));
@@ -234,26 +251,7 @@ public class SGbySelfctivity extends HsBaseActivity implements Camera.PreviewCal
 
     }
 
-    @Override
-    public void openSucceed(ConnectBridge connectBridge) {
-        mSGInitThread = new SGInitThread(this, connectBridge, mHandler);
-        mSGInitThread.start();
-    }
-
-    @Override
-    public void openFailed() {
-        Toast.makeText(this, "请重新插拔角蜂鸟允许权限", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void disConnected() {
-        if (mSGInitThread != null) {
-            mSGInitThread.close();
-            mSGInitThread = null;
-        }
-
-    }
-
+    @SuppressLint("NewApi")
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         if (mSGInitThread != null && isInit) {

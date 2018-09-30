@@ -1,10 +1,11 @@
-# SungemSDK-android Examples
+# SungemSDK-Android Examples
 
 SungemSDK-android is a JAVA extension of [original SungemSDK](https://github.com/HornedSungem/SungemSDK) that targets Android development. It currently contains four demos:
 - Hello 2018 MNIST digit recognition
 - Face detection
 - Object detection
 - Sketch guess
+- Multiple Model
 
 
 ## Support

@@ -1,4 +1,4 @@
-package com.senscape.hsdemo.objectDetector;
+package com.senscape.hsdemo.multiple;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -15,7 +15,6 @@ import android.renderscript.Element;
 import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicYuvToRGB;
 import android.renderscript.Type;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -24,7 +23,6 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.hornedSungem.library.ConnectStatus;
 import com.senscape.hsdemo.DrawView;
 import com.senscape.hsdemo.R;
 
@@ -35,11 +33,10 @@ import java.util.List;
  * Copyright(c) 2018 HornedSungem Corporation.
  * License: Apache 2.0
  */
-public class ObjectDetectorBySelfActivity extends Activity implements Camera.PreviewCallback {
-    private static final String TAG = ObjectDetectorBySelfActivity.class.getSimpleName();
+public class MultipleSelfActivity extends Activity implements Camera.PreviewCallback {
 
     private TextView mTvTip;
-    private ObjectDetectorInitThread mObjectDetectorInitThread;
+    private MultipleModelThread mMultipleModelThread;
     private SurfaceView mSurfaceView;
     private DrawView mDrawView;
 
@@ -52,7 +49,6 @@ public class ObjectDetectorBySelfActivity extends Activity implements Camera.Pre
     private Type.Builder yuvType, rgbaType;
     private Allocation in, out;
     private boolean isInit = false;
-
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -60,10 +56,10 @@ public class ObjectDetectorBySelfActivity extends Activity implements Camera.Pre
             if (msg.arg1 == 1) {
                 //初始化失败
                 int status = (int) msg.obj;
-                if (status == ConnectStatus.HS_OK) {
+                if (status >= 0) {
                     isInit = true;
                 } else
-                    Toast.makeText(ObjectDetectorBySelfActivity.this, "初始化失败,errorCode=" + msg.obj, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MultipleSelfActivity.this, "初始化失败,errorCode=" + msg.obj, Toast.LENGTH_SHORT).show();
             }
         }
     };
@@ -73,15 +69,13 @@ public class ObjectDetectorBySelfActivity extends Activity implements Camera.Pre
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_face_detector_byself);
+        setContentView(R.layout.activity_multiple_self);
         initView();
         initY2R();
         UsbDevice usbDevice = getIntent().getParcelableExtra("usbdevice");
-        if (usbDevice != null) {
-            mTvTip.setVisibility(View.GONE);
-            mObjectDetectorInitThread = new ObjectDetectorInitThread(this, usbDevice, mHandler);
-            mObjectDetectorInitThread.start();
-        }
+        mTvTip.setVisibility(View.GONE);
+        mMultipleModelThread = new MultipleModelThread(this, usbDevice, mHandler);
+        mMultipleModelThread.start();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -96,13 +90,21 @@ public class ObjectDetectorBySelfActivity extends Activity implements Camera.Pre
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_CAMERA_CODE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                recreate();
-            }
-        }
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mMultipleModelThread != null) mMultipleModelThread.closeDevice();
+    }
+
+    @SuppressLint("NewApi")
+    private void initY2R() {
+        rs = RenderScript.create(this);
+        yuvToRgbIntrinsic = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs));
+    }
+
+    private void initView() {
+        mSurfaceView = findViewById(R.id.sv_multiple_model);
+        mTvTip = findViewById(R.id.tv_multiple_model);
+        mDrawView = findViewById(R.id.dv_multiple_model);
     }
 
     /**
@@ -134,13 +136,14 @@ public class ObjectDetectorBySelfActivity extends Activity implements Camera.Pre
 
                 } catch (Exception e) {
                     // ignore: tried to stop a non-existent preview
-                    Log.e(TAG, "Error stopping camera preview: " + e.getMessage());
+                    Log.e("MultipleModelActivity", "Error stopping camera preview: " + e.getMessage());
+
                 }
 
                 try {
                     mCamera.setPreviewDisplay(mHolder);
                     setCameraParms(mCamera);
-                    mCamera.setPreviewCallback(ObjectDetectorBySelfActivity.this);
+                    mCamera.setPreviewCallback(MultipleSelfActivity.this);
                     mCamera.startPreview();
                 } catch (Exception e) {
                     // ignore: tried to stop a non-existent preview
@@ -155,44 +158,6 @@ public class ObjectDetectorBySelfActivity extends Activity implements Camera.Pre
                 mCamera = null;
             }
         });
-    }
-
-    @SuppressLint("NewApi")
-    private void initY2R() {
-        rs = RenderScript.create(this);
-        yuvToRgbIntrinsic = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs));
-    }
-
-    private void initView() {
-        mSurfaceView = findViewById(R.id.sv_face_detector);
-        mTvTip = findViewById(R.id.tv_tip);
-        mDrawView = findViewById(R.id.dv_face_detector);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mObjectDetectorInitThread != null) {
-            mObjectDetectorInitThread.closeDevice();
-        }
-    }
-
-    @SuppressLint("NewApi")
-    @Override
-    public void onPreviewFrame(byte[] data, Camera camera) {
-        if (mObjectDetectorInitThread != null && isInit) {
-            if (yuvType == null) {
-                yuvType = new Type.Builder(rs, Element.U8(rs)).setX(data.length);
-                in = Allocation.createTyped(rs, yuvType.create(), Allocation.USAGE_SCRIPT);
-                rgbaType = new Type.Builder(rs, Element.RGBA_8888(rs)).setX(prevSizeW).setY(prevSizeH);
-                out = Allocation.createTyped(rs, rgbaType.create(), Allocation.USAGE_SCRIPT);
-            }
-            in.copyFrom(data);
-            yuvToRgbIntrinsic.setInput(in);
-            yuvToRgbIntrinsic.forEach(out);
-            ODFrameTask myAsyncTask = new ODFrameTask(mObjectDetectorInitThread, mDrawView);
-            myAsyncTask.execute(out);
-        }
     }
 
     /**
@@ -233,5 +198,23 @@ public class ObjectDetectorBySelfActivity extends Activity implements Camera.Pre
             }
         }
         return result;
+    }
+
+    @SuppressLint("NewApi")
+    @Override
+    public void onPreviewFrame(byte[] bytes, Camera camera) {
+        if (mMultipleModelThread != null && isInit) {
+            if (yuvType == null) {
+                yuvType = new Type.Builder(rs, Element.U8(rs)).setX(bytes.length);
+                in = Allocation.createTyped(rs, yuvType.create(), Allocation.USAGE_SCRIPT);
+                rgbaType = new Type.Builder(rs, Element.RGBA_8888(rs)).setX(prevSizeW).setY(prevSizeH);
+                out = Allocation.createTyped(rs, rgbaType.create(), Allocation.USAGE_SCRIPT);
+            }
+            in.copyFrom(bytes);
+            yuvToRgbIntrinsic.setInput(in);
+            yuvToRgbIntrinsic.forEach(out);
+            MMFrameTask mmFrameTask = new MMFrameTask(mMultipleModelThread, mDrawView);
+            mmFrameTask.execute(out);
+        }
     }
 }

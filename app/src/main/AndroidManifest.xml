@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.senscape.hsdemo">
 
+    <uses-sdk android:minSdkVersion="14"/>
+
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.hardware.usb.host"/>
@@ -11,8 +13,9 @@
 
     <uses-permission android:name="android.permission.CAMERA"/>
 
-    <uses-sdk android:minSdkVersion="12"/>
     <uses-feature android:name="android.hardware.usb.host"/>
+
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
     <application
         android:allowBackup="true"
@@ -68,6 +71,16 @@
         </activity>
         <activity
             android:name=".sketchGuess.SGbySelfctivity"
+            android:configChanges="orientation|screenSize|screenSize|layoutDirection"
+            android:screenOrientation="landscape">
+        </activity>
+        <activity
+            android:name=".multiple.MultipleActivity"
+            android:configChanges="orientation|screenSize|screenSize|layoutDirection"
+            android:screenOrientation="landscape">
+        </activity>
+        <activity
+            android:name=".multiple.MultipleSelfActivity"
             android:configChanges="orientation|screenSize|screenSize|layoutDirection"
             android:screenOrientation="landscape">
         </activity>

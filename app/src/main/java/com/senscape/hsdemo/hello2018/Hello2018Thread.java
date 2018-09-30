@@ -4,10 +4,10 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.hardware.usb.UsbDevice;
 import android.os.Handler;
 import android.os.Message;
 
-import com.hornedSungem.library.ConnectBridge;
 import com.hornedSungem.library.ConnectStatus;
 import com.hornedSungem.library.thread.HsBaseThread;
 
@@ -24,16 +24,17 @@ public class Hello2018Thread extends HsBaseThread {
 
     private Handler mHandler;
     private Activity mActivity;
-    public Hello2018Thread(Activity activity, ConnectBridge connectBridge, Handler handler) {
-        super( connectBridge,true);
-        mActivity=activity;
-        mHandler=handler;
+
+    public Hello2018Thread(Activity activity, UsbDevice usbDevice, Handler handler) {
+        super(activity, usbDevice, true);
+        mActivity = activity;
+        mHandler = handler;
     }
 
     @Override
     public void run() {
         super.run();
-        int status = allocateGraphByAssets(mActivity,"graph_mnist");
+        int status=openDevice();
         if (status != ConnectStatus.HS_OK) {
             Message message = mHandler.obtainMessage();
             message.arg1 = 1;
@@ -41,6 +42,7 @@ public class Hello2018Thread extends HsBaseThread {
             mHandler.sendMessage(message);
             return;
         }
+        int id = allocateGraphByAssets(mActivity, "graph_mnist");
         try {
             for (int i = 1; i < 5; i++) {
                 int[] ints = new int[28 * 28];
@@ -57,9 +59,9 @@ public class Hello2018Thread extends HsBaseThread {
                 for (int j = 0; j < 28 * 28; j++) {
                     float_tensor[j] = Color.red(ints[j]) * 0.007843f - 1;
                 }
-                int status_load = loadTensor(float_tensor, float_tensor.length, 0);
+                int status_load = loadTensor(float_tensor, float_tensor.length,  id);
                 if (status_load == ConnectStatus.HS_OK) {
-                    float[] result = getResult(0);
+                    float[] result = getResult( id);
                     if (result != null) {
                         int max = getMaxPossible(result);
                         mHandler.sendEmptyMessage(max);
@@ -70,6 +72,7 @@ public class Hello2018Thread extends HsBaseThread {
             e.printStackTrace();
         }
     }
+
     public int getMaxPossible(float[] arr) {
         int max = 0;
         float max_f = 0;

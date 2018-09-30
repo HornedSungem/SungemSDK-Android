@@ -1,8 +1,10 @@
 package com.senscape.hsdemo.faceDetector;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
+import android.hardware.usb.UsbDevice;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,16 +23,17 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.hornedSungem.library.ConnectBridge;
 import com.hornedSungem.library.ConnectStatus;
-import com.hornedSungem.library.HsBaseActivity;
 import com.senscape.hsdemo.DrawView;
 import com.senscape.hsdemo.R;
 
 import java.io.IOException;
 import java.util.List;
-
-public class FaceDetectorBySelfActivity extends HsBaseActivity implements Camera.PreviewCallback {
+/**
+ * Copyright(c) 2018 HornedSungem Corporation.
+ * License: Apache 2.0
+ */
+public class FaceDetectorBySelfActivity extends Activity implements Camera.PreviewCallback {
 
     private static final String TAG = FaceDetectorBySelfActivity.class.getSimpleName();
 
@@ -56,7 +59,7 @@ public class FaceDetectorBySelfActivity extends HsBaseActivity implements Camera
             if (msg.arg1 == 1) {
                 //初始化失败
                 int status = (int) msg.obj;
-                if (status == ConnectStatus.HS_OK) {
+                if (status >= 0) {
                     isInit = true;
                 } else
                     Toast.makeText(FaceDetectorBySelfActivity.this, "初始化失败,errorCode=" + msg.obj, Toast.LENGTH_SHORT).show();
@@ -72,6 +75,10 @@ public class FaceDetectorBySelfActivity extends HsBaseActivity implements Camera
         setContentView(R.layout.activity_face_detector_byself);
         initView();
         initY2R();
+        UsbDevice usbDevice = getIntent().getParcelableExtra("usbdevice");
+        mTvTip.setVisibility(View.GONE);
+        mHsThread = new FaceDetectorBySelfThread(this, usbDevice, mHandler);
+        mHsThread.start();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -83,6 +90,12 @@ public class FaceDetectorBySelfActivity extends HsBaseActivity implements Camera
             }
             openSurfaceView();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mHsThread != null) mHsThread.closeDevice();
     }
 
     @Override
@@ -156,27 +169,6 @@ public class FaceDetectorBySelfActivity extends HsBaseActivity implements Camera
         mSurfaceView = findViewById(R.id.sv_face_detector);
         mTvTip = findViewById(R.id.tv_tip);
         mDrawView = findViewById(R.id.dv_face_detector);
-    }
-
-    @Override
-    public void openSucceed(ConnectBridge connectBridge) {
-        mTvTip.setVisibility(View.GONE);
-        mHsThread = new FaceDetectorBySelfThread(this, connectBridge, mHandler);
-        mHsThread.start();
-    }
-
-    @Override
-    public void openFailed() {
-        mTvTip.setText("请重新插拔角蜂鸟允许权限");
-    }
-
-    @Override
-    public void disConnected() {
-        Toast.makeText(this, "断开连接", Toast.LENGTH_SHORT).show();
-        mCamera.stopPreview();
-        if (mHsThread != null) {
-            mHsThread.close();
-        }
     }
 
 

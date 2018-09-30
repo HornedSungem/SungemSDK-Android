@@ -16,7 +16,8 @@ import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 
 /**
- * Created by looper.lu on 18/6/20.
+ * Copyright(c) 2018 HornedSungem Corporation.
+ * License: Apache 2.0
  */
 
 public class ODFrameTask extends AsyncTask<Allocation, Integer, HornedSungemFrame> {
@@ -32,6 +33,7 @@ public class ODFrameTask extends AsyncTask<Allocation, Integer, HornedSungemFram
         mObjectDetectorInitThread = objectDetectorInitThread;
         mDrawView = drawView;
     }
+
     @Override
     protected HornedSungemFrame doInBackground(Allocation... allocations) {
         try {
@@ -51,9 +53,9 @@ public class ODFrameTask extends AsyncTask<Allocation, Integer, HornedSungemFram
                 float_tensor[j * 3 + 1] = Color.green(ints[j]) * 0.007843f - 1;
                 float_tensor[j * 3 + 2] = Color.blue(ints[j]) * 0.007843f - 1;
             }
-            int status_load = mObjectDetectorInitThread.loadTensor(float_tensor, float_tensor.length, 1);
+            int status_load = mObjectDetectorInitThread.loadTensor(float_tensor, float_tensor.length, 0);
             if (status_load == ConnectStatus.HS_OK) {
-                float[] result = mObjectDetectorInitThread.getResult(0);
+                float[] result = mObjectDetectorInitThread.getResult( 0);
                 if (result != null)
                     return getFrameResult(result);
             }
@@ -75,6 +77,7 @@ public class ODFrameTask extends AsyncTask<Allocation, Integer, HornedSungemFram
             }
         }
     }
+
     public HornedSungemFrame getFrameResult(float[] floats) {
         //检测结果处理
         int num = (int) floats[0];

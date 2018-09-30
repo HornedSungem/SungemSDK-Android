@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".multiple.MultipleSelfActivity">
+
+    <SurfaceView
+        android:id="@+id/sv_multiple_model"
+        android:layout_width="1280px"
+        android:layout_height="720px"
+        android:layout_centerInParent="true"/>
+
+    <com.senscape.hsdemo.DrawView
+        android:id="@+id/dv_multiple_model"
+        android:layout_width="1280px"
+        android:layout_height="720px"
+        android:layout_centerInParent="true"
+        />
+
+    <TextView
+        android:id="@+id/tv_multiple_model"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="20dp"
+        android:text="请通过usb连接角蜂鸟，并打开权限"/>
+</RelativeLayout>

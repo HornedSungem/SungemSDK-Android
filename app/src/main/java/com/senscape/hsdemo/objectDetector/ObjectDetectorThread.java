@@ -3,10 +3,10 @@ package com.senscape.hsdemo.objectDetector;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.hardware.usb.UsbDevice;
 import android.os.Handler;
 import android.os.Message;
 
-import com.hornedSungem.library.ConnectBridge;
 import com.hornedSungem.library.ConnectStatus;
 import com.hornedSungem.library.model.HornedSungemFrame;
 import com.hornedSungem.library.thread.HsBaseThread;
@@ -19,7 +19,8 @@ import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2RGBA;
 import static org.bytedeco.javacpp.opencv_imgproc.cvCvtColor;
 
 /**
- * Created by looper.lu on 18/5/18.
+ * Copyright(c) 2018 HornedSungem Corporation.
+ * License: Apache 2.0
  */
 
 public class ObjectDetectorThread extends HsBaseThread {
@@ -35,8 +36,8 @@ public class ObjectDetectorThread extends HsBaseThread {
     private float STD = 0.007843f;
     private float MEAN = 0.9999825f;
 
-    public ObjectDetectorThread(Activity activity, ConnectBridge connectBridge, Handler handler) {
-        super(connectBridge,true);
+    public ObjectDetectorThread(Activity activity, UsbDevice usbDevice, Handler handler) {
+        super(activity, usbDevice, true);
         mActivity = activity;
         mHandler = handler;
     }
@@ -47,12 +48,7 @@ public class ObjectDetectorThread extends HsBaseThread {
     @Override
     public void run() {
         super.run();
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        int status = allocateGraphByAssets(mActivity, "graph_object_SSD");
+        int status = openDevice();
         if (status != ConnectStatus.HS_OK) {
             Message message = mHandler.obtainMessage();
             message.arg1 = 1;
@@ -60,43 +56,47 @@ public class ObjectDetectorThread extends HsBaseThread {
             mHandler.sendMessage(message);
             return;
         }
+        int id = allocateGraphByAssets(mActivity, "graph_object_SSD");
+        if (id != ConnectStatus.HS_OK) {
+            return;
+        }
         while (true) {
-                try {
-                    byte[] bytes = getImage(STD, MEAN);
-                    float[] result = getResult(0);
-                    if (bytes != null && result != null) {
-                        opencv_core.IplImage bgrImage = null;
-                        if (zoom) {
-                            FRAME_W = 640;
-                            FRAME_H = 360;
-                            bgrImage = opencv_core.IplImage.create(FRAME_W, FRAME_H, opencv_core.IPL_DEPTH_8U, 3);
-                            bgrImage.getByteBuffer().put(bytes);
-                        } else {
-                            FRAME_W = 1920;
-                            FRAME_H = 1080;
-                            byte[] bytes_rgb = new byte[FRAME_W * FRAME_H * 3];
-                            for (int i = 0; i < FRAME_H * FRAME_W; i++) {
-                                bytes_rgb[i * 3 + 2] = bytes[i];//r
-                                bytes_rgb[i * 3 + 1] = bytes[FRAME_W * FRAME_H + i];//g
-                                bytes_rgb[i * 3] = bytes[FRAME_W * FRAME_H * 2 + i];//b
-                            }
-                            bgrImage = opencv_core.IplImage.create(FRAME_W, FRAME_H, opencv_core.IPL_DEPTH_8U, 3);
-                            bgrImage.getByteBuffer().put(bytes_rgb);
-                        }
-                        opencv_core.IplImage image = opencv_core.IplImage.create(FRAME_W, FRAME_H, opencv_core.IPL_DEPTH_8U, 4);
-                        cvCvtColor(bgrImage, image, CV_BGR2RGBA);
-                        HornedSungemFrame frame = getFrameResult(image, result);
-                        Message message = mHandler.obtainMessage();
-                        message.arg1 = 0;
-                        message.obj = frame;
-                        mHandler.sendMessage(message);
+            try {
+                byte[] bytes = getImage(STD, MEAN, id);
+                float[] result = getResult(id);
+                if (bytes != null && result != null) {
+                    opencv_core.IplImage bgrImage = null;
+                    if (zoom) {
+                        FRAME_W = 640;
+                        FRAME_H = 360;
+                        bgrImage = opencv_core.IplImage.create(FRAME_W, FRAME_H, opencv_core.IPL_DEPTH_8U, 3);
+                        bgrImage.getByteBuffer().put(bytes);
                     } else {
-                        continue;
+                        FRAME_W = 1920;
+                        FRAME_H = 1080;
+                        byte[] bytes_rgb = new byte[FRAME_W * FRAME_H * 3];
+                        for (int i = 0; i < FRAME_H * FRAME_W; i++) {
+                            bytes_rgb[i * 3 + 2] = bytes[i];//r
+                            bytes_rgb[i * 3 + 1] = bytes[FRAME_W * FRAME_H + i];//g
+                            bytes_rgb[i * 3] = bytes[FRAME_W * FRAME_H * 2 + i];//b
+                        }
+                        bgrImage = opencv_core.IplImage.create(FRAME_W, FRAME_H, opencv_core.IPL_DEPTH_8U, 3);
+                        bgrImage.getByteBuffer().put(bytes_rgb);
                     }
-                } catch (Exception e) {
-                   return;
+                    opencv_core.IplImage image = opencv_core.IplImage.create(FRAME_W, FRAME_H, opencv_core.IPL_DEPTH_8U, 4);
+                    cvCvtColor(bgrImage, image, CV_BGR2RGBA);
+                    HornedSungemFrame frame = getFrameResult(image, result);
+                    Message message = mHandler.obtainMessage();
+                    message.arg1 = 0;
+                    message.obj = frame;
+                    mHandler.sendMessage(message);
+                } else {
+                    continue;
                 }
+            } catch (Exception e) {
+                return;
             }
+        }
     }
 
     public HornedSungemFrame getFrameResult(opencv_core.IplImage image, float[] floats) {

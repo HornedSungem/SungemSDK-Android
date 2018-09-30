@@ -1,6 +1,8 @@
 package com.senscape.hsdemo.sketchGuess;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
+import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -11,8 +13,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.hornedSungem.library.ConnectBridge;
-import com.hornedSungem.library.HsBaseActivity;
 import com.senscape.hsdemo.R;
 
 import java.io.BufferedReader;
@@ -24,7 +24,7 @@ import java.io.IOException;
  * Copyright(c) 2018 HornedSungem Corporation.
  * License: Apache 2.0
  */
-public class SketchGuessActivity extends HsBaseActivity {
+public class SketchGuessActivity extends Activity {
 
     private ImageView mImg_frame;
     private ImageView mImg_tensor;
@@ -37,6 +37,7 @@ public class SketchGuessActivity extends HsBaseActivity {
     private TextView mTvTarget;
     private int index = 1;
     private SketchGuessThread mSketchGuessThread;
+    private UsbDevice mUsbDevice;
     private String[] mObjectNames = new String[345];
     Handler mHandler = new Handler() {
         @Override
@@ -70,16 +71,23 @@ public class SketchGuessActivity extends HsBaseActivity {
                 }
             }
             if (msg.arg1 == 100) {
+                if (mUsbDevice != null) {
+                    mSketchGuessThread = new SketchGuessThread(SketchGuessActivity.this, mUsbDevice, mHandler, mObjectNames);
+                    mSketchGuessThread.start();
+                }
                 mTvTarget.setText("命题：" + mObjectNames[index]);
             }
         }
     };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sketch_guess);
         initView();
+        mUsbDevice = getIntent().getParcelableExtra("usbdevice");
+
         new Thread() {
             @Override
             public void run() {
@@ -108,6 +116,12 @@ public class SketchGuessActivity extends HsBaseActivity {
         }.start();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mSketchGuessThread != null) mSketchGuessThread.closeDevice();
+    }
+
     public void initView() {
         mImg_frame = findViewById(R.id.img_frame_sg);
         mImg_tensor = findViewById(R.id.img_tensor_sg);
@@ -122,22 +136,4 @@ public class SketchGuessActivity extends HsBaseActivity {
 
     }
 
-    @Override
-    public void openSucceed(ConnectBridge conncectBridge) {
-        mSketchGuessThread = new SketchGuessThread(this, conncectBridge, mHandler, mObjectNames);
-        mSketchGuessThread.start();
-    }
-
-    @Override
-    public void openFailed() {
-        Toast.makeText(this, "请重新插拔角蜂鸟允许权限", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void disConnected() {
-        if (mSketchGuessThread != null) {
-            mSketchGuessThread.close();
-        }
-
-    }
 }

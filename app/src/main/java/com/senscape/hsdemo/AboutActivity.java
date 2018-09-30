@@ -2,6 +2,7 @@ package com.senscape.hsdemo;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.hardware.usb.UsbDevice;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,6 +18,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+
 /**
  * Copyright(c) 2018 HornedSungem Corporation.
  * License: Apache 2.0
@@ -29,11 +31,11 @@ public class AboutActivity extends Activity implements View.OnClickListener {
     private TextView mAboutTextTitle;
     private String mLaunchType;
 
+    private UsbDevice mUsbDevice;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -42,7 +44,7 @@ public class AboutActivity extends Activity implements View.OnClickListener {
         Bundle extras = getIntent().getExtras();
         String webText = extras.getString("ABOUT_TEXT");
         mLaunchType = extras.getString("ACTIVITY_TO_LAUNCH");
-
+        mUsbDevice = extras.getParcelable("usbdevice");
         mAboutWebText = findViewById(R.id.about_html_text);
 
         AboutWebViewClient aboutWebClient = new AboutWebViewClient();
@@ -70,7 +72,6 @@ public class AboutActivity extends Activity implements View.OnClickListener {
         mAboutTextTitle = findViewById(R.id.about_text_title);
         mAboutTextTitle.setText(extras.getString("ABOUT_TEXT_TITLE"));
     }
-
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -82,6 +83,7 @@ public class AboutActivity extends Activity implements View.OnClickListener {
 
     private void startShowActivity() {
         Intent i = new Intent();
+        i.putExtra("usbdevice", mUsbDevice);
         i.setClassName(getPackageName(), getPackageName() + "." + mLaunchType);
         startActivity(i);
     }

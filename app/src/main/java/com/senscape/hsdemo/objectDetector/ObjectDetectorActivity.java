@@ -1,5 +1,7 @@
 package com.senscape.hsdemo.objectDetector;
 
+import android.app.Activity;
+import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -8,8 +10,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.hornedSungem.library.ConnectBridge;
-import com.hornedSungem.library.HsBaseActivity;
 import com.hornedSungem.library.model.HornedSungemFrame;
 import com.hornedSungem.library.thread.HsBaseThread;
 import com.senscape.hsdemo.DrawView;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
  * Copyright(c) 2018 HornedSungem Corporation.
  * License: Apache 2.0
  */
-public class ObjectDetectorActivity extends HsBaseActivity {
+public class ObjectDetectorActivity extends Activity {
 
     private HsBaseThread mHsThread;
     private TextView mTvTip;
@@ -55,35 +55,23 @@ public class ObjectDetectorActivity extends HsBaseActivity {
         mImageView = findViewById(R.id.img_frame);
         mDrawView = findViewById(R.id.draw_view);
         mTvTip = findViewById(R.id.tv_tip);
-
+        UsbDevice usbDevice = getIntent().getParcelableExtra("usbdevice");
+        if (usbDevice != null) {
+            mTvTip.setVisibility(View.GONE);
+            mHsThread = new ObjectDetectorThread(ObjectDetectorActivity.this, usbDevice, mHandler);
+            mHsThread.start();
+        } else {
+            mTvTip.setText("请返回主页重新插拔角蜂鸟允许权限");
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (mHsThread != null) {
-            mHsThread.close();
+            mHsThread.closeDevice();
         }
     }
 
-    @Override
-    public void openSucceed(ConnectBridge connectBridge) {
-        mTvTip.setVisibility(View.GONE);
-        mHsThread = new ObjectDetectorThread(ObjectDetectorActivity.this, connectBridge, mHandler);
-        mHsThread.setZoom(true);
-        mHsThread.start();
-    }
 
-    @Override
-    public void openFailed() {
-        mTvTip.setText("请重新插拔角蜂鸟允许权限");
-    }
-
-    @Override
-    public void disConnected() {
-        Toast.makeText(this, "断开连接", Toast.LENGTH_SHORT).show();
-        if (mHsThread != null) {
-            mHsThread.close();
-        }
-    }
 }
